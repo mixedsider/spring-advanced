@@ -1,6 +1,7 @@
 package org.example.expert.domain.comment.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.expert.domain.common.entity.Timestamped;
@@ -25,6 +26,7 @@ public class Comment extends Timestamped {
     @JoinColumn(name = "todo_id", nullable = false)
     private Todo todo;
 
+    @Builder
     public Comment(String contents, User user, Todo todo) {
         this.contents = contents;
         this.user = user;

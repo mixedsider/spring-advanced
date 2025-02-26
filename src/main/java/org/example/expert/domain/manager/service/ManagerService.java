@@ -62,14 +62,24 @@ public class ManagerService {
 
         List<Manager> managerList = managerRepository.findByTodoIdWithUser(todo.getId());
 
-        List<ManagerResponse> dtoList = new ArrayList<>();
-        for (Manager manager : managerList) {
-            User user = manager.getUser();
-            dtoList.add(new ManagerResponse(
-                    manager.getId(),
-                    new UserResponse(user.getId(), user.getEmail())
-            ));
-        }
+//        List<ManagerResponse> dtoList = new ArrayList<>();
+//        for (Manager manager : managerList) {
+//            User user = manager.getUser();
+//            dtoList.add(new ManagerResponse(
+//                    manager.getId(),
+//                    new UserResponse(user.getId(), user.getEmail())
+//            ));
+//        }
+
+        List<ManagerResponse> dtoList = managerList.stream()
+                .map( manager -> {
+                    User user = manager.getUser();
+                    return new ManagerResponse(
+                            manager.getId(),
+                            new UserResponse(user.getId(), user.getEmail())
+                    );
+                }).toList();
+
         return dtoList;
     }
 

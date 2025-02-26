@@ -1,11 +1,13 @@
 package org.example.expert.domain.todo.dto.response;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.example.expert.domain.user.dto.response.UserResponse;
 
 import java.time.LocalDateTime;
 
 @Getter
+@RequiredArgsConstructor
 public class TodoResponse {
 
     private final Long id;
@@ -16,13 +18,13 @@ public class TodoResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public TodoResponse(Long id, String title, String contents, String weather, UserResponse user, LocalDateTime createdAt, LocalDateTime modifiedAt) {
-        this.id = id;
-        this.title = title;
-        this.contents = contents;
-        this.weather = weather;
-        this.user = user;
-        this.createdAt = createdAt;
-        this.modifiedAt = modifiedAt;
-    }
+//    public TodoResponse(Long id, String title, String contents, String weather, UserResponse user, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+//        this.id = id;
+//        this.title = title;
+//        this.contents = contents;
+//        this.weather = weather;
+//        this.user = user;
+//        this.createdAt = createdAt;
+//        this.modifiedAt = modifiedAt;
+//    }
 }

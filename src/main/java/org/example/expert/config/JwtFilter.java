@@ -21,11 +21,6 @@ public class JwtFilter implements Filter {
     private final JwtUtil jwtUtil;
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        Filter.super.init(filterConfig);
-    }
-
-    @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -61,13 +56,19 @@ public class JwtFilter implements Filter {
             httpRequest.setAttribute("email", claims.get("email"));
             httpRequest.setAttribute("userRole", claims.get("userRole"));
 
-            if (url.startsWith("/admin")) {
+//            if (url.startsWith("/admin")) {
+//                // 관리자 권한이 없는 경우 403을 반환합니다.
+//                if (!UserRole.ADMIN.equals(userRole)) {
+//                    httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
+//                    return;
+//                }
+//                chain.doFilter(request, response);
+//                return;
+//            }
+
+            if ( url.startsWith("/admin") && !UserRole.ADMIN.equals(userRole) ) {
                 // 관리자 권한이 없는 경우 403을 반환합니다.
-                if (!UserRole.ADMIN.equals(userRole)) {
-                    httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
-                    return;
-                }
-                chain.doFilter(request, response);
+                httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
                 return;
             }
 
@@ -85,10 +86,5 @@ public class JwtFilter implements Filter {
             log.error("Invalid JWT token, 유효하지 않는 JWT 토큰 입니다.", e);
             httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "유효하지 않는 JWT 토큰입니다.");
         }
-    }
-
-    @Override
-    public void destroy() {
-        Filter.super.destroy();
     }
 }

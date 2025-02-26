@@ -31,35 +31,35 @@ public class CommentService {
         Todo todo = todoRepository.findById(todoId).orElseThrow(() ->
                 new InvalidRequestException("Todo not found"));
 
-        Comment newComment = new Comment(
-                commentSaveRequest.getContents(),
-                user,
-                todo
-        );
+        Comment newComment = Comment.builder()
+                .contents(commentSaveRequest.getContents())
+                .user(user)
+                .todo(todo)
+                .build();
 
         Comment savedComment = commentRepository.save(newComment);
 
-        return new CommentSaveResponse(
-                savedComment.getId(),
-                savedComment.getContents(),
-                new UserResponse(user.getId(), user.getEmail())
-        );
+        return CommentSaveResponse.builder()
+                .id(savedComment.getId())
+                .contents(savedComment.getContents())
+                .user(new UserResponse(user.getId(), user.getEmail()))
+                .build();
     }
 
     @Transactional(readOnly = true)
     public List<CommentResponse> getComments(long todoId) {
         List<Comment> commentList = commentRepository.findByTodoIdWithUser(todoId);
 
-        List<CommentResponse> dtoList = new ArrayList<>();
-        for (Comment comment : commentList) {
-            User user = comment.getUser();
-            CommentResponse dto = new CommentResponse(
-                    comment.getId(),
-                    comment.getContents(),
-                    new UserResponse(user.getId(), user.getEmail())
-            );
-            dtoList.add(dto);
-        }
+        List<CommentResponse> dtoList = commentList.stream()
+                .map(item -> {
+                    User user = item.getUser();
+                    return new CommentResponse(
+                            item.getId(),
+                            item.getContents(),
+                            new UserResponse(user.getId(), user.getEmail())
+                    );
+                }).toList();
+
         return dtoList;
     }
 }
