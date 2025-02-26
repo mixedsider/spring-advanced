@@ -2,6 +2,9 @@ package org.example.expert.domain.manager.controller;
 
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.config.JwtUtil;
 import org.example.expert.domain.common.annotation.Auth;
@@ -16,34 +19,32 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/managers")
 @RequiredArgsConstructor
 public class ManagerController {
 
     private final ManagerService managerService;
-    private final JwtUtil jwtUtil;
 
-    @PostMapping("/todos/{todoId}/managers")
+    @PostMapping("")
     public ResponseEntity<ManagerSaveResponse> saveManager(
             @Auth AuthUser authUser,
-            @PathVariable long todoId,
+            @NotNull @Min(value = 1) @RequestParam Long todoId,
             @Valid @RequestBody ManagerSaveRequest managerSaveRequest
     ) {
         return ResponseEntity.ok(managerService.saveManager(authUser, todoId, managerSaveRequest));
     }
 
-    @GetMapping("/todos/{todoId}/managers")
-    public ResponseEntity<List<ManagerResponse>> getMembers(@PathVariable long todoId) {
+    @GetMapping("")
+    public ResponseEntity<List<ManagerResponse>> getMembers(@NotNull @Min(value = 1) @RequestParam Long todoId) {
         return ResponseEntity.ok(managerService.getManagers(todoId));
     }
 
-    @DeleteMapping("/todos/{todoId}/managers/{managerId}")
+    @DeleteMapping("")
     public void deleteManager(
-            @RequestHeader("Authorization") String bearerToken,
-            @PathVariable long todoId,
-            @PathVariable long managerId
+            @Auth AuthUser authUser,
+            @NotNull @Min(value = 1) @RequestParam Long todoId,
+            @NotNull @Min(value = 1) @RequestParam Long managerId
     ) {
-        Claims claims = jwtUtil.extractClaims(bearerToken.substring(7));
-        long userId = Long.parseLong(claims.getSubject());
-        managerService.deleteManager(userId, todoId, managerId);
+        managerService.deleteManager(authUser.getId(), todoId, managerId);
     }
 }

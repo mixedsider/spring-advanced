@@ -1,5 +1,6 @@
 package org.example.expert.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.expert.domain.user.enums.UserRole;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 
@@ -47,6 +49,7 @@ public class JwtFilter implements Filter {
             Claims claims = jwtUtil.extractClaims(jwt);
             if (claims == null) {
                 httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 JWT 토큰입니다.");
+//                response.getWriter().write(new ObjectMapper().writeValueAsString(new ErrorMessage(ErrorCode.NOT_LOGIN, HttpStatus.UNAUTHORIZED)));
                 return;
             }
 

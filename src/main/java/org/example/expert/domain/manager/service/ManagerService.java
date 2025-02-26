@@ -98,7 +98,7 @@ public class ManagerService {
         Manager manager = managerRepository.findById(managerId)
                 .orElseThrow(() -> new InvalidRequestException("Manager not found"));
 
-        if (!ObjectUtils.nullSafeEquals(todo.getId(), manager.getTodo().getId())) {
+        if (manager.getTodo() == null || !ObjectUtils.nullSafeEquals(todo.getId(), manager.getTodo().getId())) {
             throw new InvalidRequestException("해당 일정에 등록된 담당자가 아닙니다.");
         }
 
