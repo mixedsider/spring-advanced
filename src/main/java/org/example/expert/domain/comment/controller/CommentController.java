@@ -1,6 +1,9 @@
 package org.example.expert.domain.comment.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.domain.comment.dto.request.CommentSaveRequest;
 import org.example.expert.domain.comment.dto.response.CommentResponse;
@@ -14,22 +17,23 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("/todos/{todoId}/comments")
+    @PostMapping("")
     public ResponseEntity<CommentSaveResponse> saveComment(
             @Auth AuthUser authUser,
-            @PathVariable long todoId,
+            @NotNull @Min(value = 1) @RequestParam Long todoId,
             @Valid @RequestBody CommentSaveRequest commentSaveRequest
     ) {
         return ResponseEntity.ok(commentService.saveComment(authUser, todoId, commentSaveRequest));
     }
 
-    @GetMapping("/todos/{todoId}/comments")
-    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable long todoId) {
+    @GetMapping("")
+    public ResponseEntity<List<CommentResponse>> getComments(@NotNull @Min(value = 1) @RequestParam Long todoId) {
         return ResponseEntity.ok(commentService.getComments(todoId));
     }
 }

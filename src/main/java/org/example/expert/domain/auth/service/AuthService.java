@@ -24,21 +24,21 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public SignupResponse signup(SignupRequest signupRequest) {
-
-        String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
-
-        UserRole userRole = UserRole.of(signupRequest.getUserRole());
-
-        if (userRepository.existsByEmail(signupRequest.getEmail())) {
+    public SignupResponse signup(String email, String password, String role) {
+        if (userRepository.existsByEmail(email)) {
             throw new InvalidRequestException("이미 존재하는 이메일입니다.");
         }
 
-        User newUser = new User(
-                signupRequest.getEmail(),
-                encodedPassword,
-                userRole
-        );
+        String encodedPassword = passwordEncoder.encode(password);
+
+        UserRole userRole = UserRole.of(role);
+
+        User newUser = User.builder()
+                .email(email)
+                .password(encodedPassword)
+                .userRole(userRole)
+                .build();
+
         User savedUser = userRepository.save(newUser);
 
         String bearerToken = jwtUtil.createToken(savedUser.getId(), savedUser.getEmail(), userRole);
@@ -47,12 +47,12 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public SigninResponse signin(SigninRequest signinRequest) {
-        User user = userRepository.findByEmail(signinRequest.getEmail()).orElseThrow(
+    public SigninResponse signin(String email, String password) {
+        User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new InvalidRequestException("가입되지 않은 유저입니다."));
 
         // 로그인 시 이메일과 비밀번호가 일치하지 않을 경우 401을 반환합니다.
-        if (!passwordEncoder.matches(signinRequest.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new AuthException("잘못된 비밀번호입니다.");
         }
 

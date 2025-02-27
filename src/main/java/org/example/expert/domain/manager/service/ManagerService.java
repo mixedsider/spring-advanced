@@ -35,7 +35,7 @@ public class ManagerService {
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
 
-        if (!ObjectUtils.nullSafeEquals(user.getId(), todo.getUser().getId())) {
+        if ( todo.getUser() == null || !ObjectUtils.nullSafeEquals(user.getId(), todo.getUser().getId())) {
             throw new InvalidRequestException("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.");
         }
 
@@ -62,14 +62,24 @@ public class ManagerService {
 
         List<Manager> managerList = managerRepository.findByTodoIdWithUser(todo.getId());
 
-        List<ManagerResponse> dtoList = new ArrayList<>();
-        for (Manager manager : managerList) {
-            User user = manager.getUser();
-            dtoList.add(new ManagerResponse(
-                    manager.getId(),
-                    new UserResponse(user.getId(), user.getEmail())
-            ));
-        }
+//        List<ManagerResponse> dtoList = new ArrayList<>();
+//        for (Manager manager : managerList) {
+//            User user = manager.getUser();
+//            dtoList.add(new ManagerResponse(
+//                    manager.getId(),
+//                    new UserResponse(user.getId(), user.getEmail())
+//            ));
+//        }
+
+        List<ManagerResponse> dtoList = managerList.stream()
+                .map( manager -> {
+                    User user = manager.getUser();
+                    return new ManagerResponse(
+                            manager.getId(),
+                            new UserResponse(user.getId(), user.getEmail())
+                    );
+                }).toList();
+
         return dtoList;
     }
 
@@ -88,7 +98,7 @@ public class ManagerService {
         Manager manager = managerRepository.findById(managerId)
                 .orElseThrow(() -> new InvalidRequestException("Manager not found"));
 
-        if (!ObjectUtils.nullSafeEquals(todo.getId(), manager.getTodo().getId())) {
+        if (manager.getTodo() == null || !ObjectUtils.nullSafeEquals(todo.getId(), manager.getTodo().getId())) {
             throw new InvalidRequestException("해당 일정에 등록된 담당자가 아닙니다.");
         }
 
