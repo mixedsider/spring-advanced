@@ -16,6 +16,7 @@ public class AdminInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+        // filter 에서 정재된 데이터 사용
         String requestUri = request.getRequestURI();
         String requestUserId = request.getAttribute("userId").toString();
         UserRole role = UserRole.of(request.getAttribute("userRole").toString());
@@ -27,7 +28,7 @@ public class AdminInterceptor implements HandlerInterceptor {
 //            return false;
 //        }
 
-        if( !UserRole.ADMIN.equals(role) ) {
+        if( !UserRole.ADMIN.equals(role) ) { // 유저의 관리자 권한 확인
             throw new AuthException("관리자 권한이 없습니다.");
         }
 

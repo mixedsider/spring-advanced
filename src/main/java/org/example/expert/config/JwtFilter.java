@@ -49,32 +49,15 @@ public class JwtFilter implements Filter {
             Claims claims = jwtUtil.extractClaims(jwt);
             if (claims == null) {
                 httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 JWT 토큰입니다.");
-//                response.getWriter().write(new ObjectMapper().writeValueAsString(new ErrorMessage(ErrorCode.NOT_LOGIN, HttpStatus.UNAUTHORIZED)));
                 return;
             }
 
-//            UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class));
 
             httpRequest.setAttribute("userId", Long.parseLong(claims.getSubject()));
             httpRequest.setAttribute("email", claims.get("email"));
             httpRequest.setAttribute("userRole", claims.get("userRole"));
 
 
-//            if (url.startsWith("/admin")) {
-//                // 관리자 권한이 없는 경우 403을 반환합니다.
-//                if (!UserRole.ADMIN.equals(userRole)) {
-//                    httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
-//                    return;
-//                }
-//                chain.doFilter(request, response);
-//                return;
-//            }
-
-//            if ( url.startsWith("/admin") && !UserRole.ADMIN.equals(userRole) ) {
-//                // 관리자 권한이 없는 경우 403을 반환합니다.
-//                httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
-//                return;
-//            }
 
             chain.doFilter(request, response);
         } catch (SecurityException | MalformedJwtException e) {

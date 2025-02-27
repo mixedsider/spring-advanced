@@ -138,9 +138,9 @@ class UserServiceTest {
         // when
         userService.changePassword(userId, userChangePasswordRequest);
 
-        // then
         User findUser = userRepository.findById(userId).get();
 
+        // then
         assertEquals(findUser, user);
     }
 

@@ -27,7 +27,7 @@ public class TodoService {
 
     @Transactional
     public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
-        User user = User.fromAuthUser(authUser);
+        User user = User.fromAuthUser(authUser); // AuthUser -> User entity
 
         String weather = weatherClient.getTodayWeather();
 

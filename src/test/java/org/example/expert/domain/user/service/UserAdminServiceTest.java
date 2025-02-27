@@ -41,7 +41,7 @@ class UserAdminServiceTest {
         // when
         userAdminService.changeUserRole(userId, userRoleChangeRequest);
 
-        //
+        // then
         assertEquals(user.getUserRole(), UserRole.ADMIN);
     }
 

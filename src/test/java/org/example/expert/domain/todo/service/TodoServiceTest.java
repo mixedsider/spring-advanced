@@ -99,6 +99,7 @@ class TodoServiceTest {
         // when
         TodoResponse todoResponse = todoService.getTodo(1L);
 
+        // then
         assertEquals(user.getId(), todoResponse.getUser().getId());
         assertEquals(todoResponse.getContents(), todoSaveRequest.getContents());
     }
