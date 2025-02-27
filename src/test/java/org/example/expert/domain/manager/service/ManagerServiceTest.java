@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,11 +72,61 @@ class ManagerServiceTest {
         assertEquals("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.", exception.getMessage());
     }
 
+    @Test
+    void todo_user와_user_getId비교_예외가_발생한다() {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        AuthUser authUser2 = new AuthUser(2L, "b@a.com", UserRole.USER);
+        long todoId = 1L;
+        long managerUserId = 2L;
+
+        User user = User.fromAuthUser(authUser2);
+
+        Todo todo = new Todo();
+        ReflectionTestUtils.setField(todo, "user", user);
+
+        ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId);
+
+        given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+
+        // when & then
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+                managerService.saveManager(authUser, todoId, managerSaveRequest)
+        );
+
+        assertEquals("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.", exception.getMessage());
+    }
+
+    @Test
+    void 일정_작성자_본인을_담당자로_등록시_에러 () {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        long todoId = 1L;
+        long managerUserId = 2L;
+
+        User user = User.fromAuthUser(authUser);
+
+        Todo todo = new Todo();
+        ReflectionTestUtils.setField(todo, "user", user);
+
+        ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId);
+
+        given(userRepository.findById(managerSaveRequest.getManagerUserId())).willReturn(Optional.of(user));
+        given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+
+        // when & then
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+                managerService.saveManager(authUser, todoId, managerSaveRequest)
+        );
+
+        assertEquals("일정 작성자는 본인을 담당자로 등록할 수 없습니다.", exception.getMessage());
+    }
+
     @Test // 테스트코드 샘플
     public void manager_목록_조회에_성공한다() {
         // given
-        long todoId = 1L;
         User user = new User("user1@example.com", "password", UserRole.USER);
+        long todoId = 1L;
         Todo todo = new Todo("Title", "Contents", "Sunny", user);
         ReflectionTestUtils.setField(todo, "id", todoId);
 
@@ -121,4 +172,98 @@ class ManagerServiceTest {
         assertEquals(managerUser.getId(), response.getUser().getId());
         assertEquals(managerUser.getEmail(), response.getUser().getEmail());
     }
+
+    @Test // 테스트코드 샘플
+    void deleteManager시_유저가_없는_경우 () {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        User user = User.fromAuthUser(authUser);  // 일정을 만든 유저
+
+        long todoId = 1L;
+
+        long managerUserId = 2L;
+
+//        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+        // when
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+                managerService.deleteManager(user.getId(), todoId, managerUserId)
+        );
+
+        // then
+        assertEquals("User not found", exception.getMessage());
+    }
+
+    @Test // 테스트코드 샘플
+    void deleteManager시_todo가_없는_경우 () {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        User user = User.fromAuthUser(authUser);  // 일정을 만든 유저
+
+        long todoId = 1L;
+
+        long managerUserId = 2L;
+
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+        // when
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+                managerService.deleteManager(user.getId(), todoId, managerUserId)
+        );
+
+        // then
+        assertEquals("Todo not found", exception.getMessage());
+    }
+
+    @Test // 테스트코드 샘플
+    void deleteManager시_todo의User가NULL인_경우 () {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        User user = User.fromAuthUser(authUser);  // 일정을 만든 유저
+
+        long todoId = 1L;
+        Todo todo = new Todo("Title", "Contents", "Sunny", null);
+        ReflectionTestUtils.setField(todo, "id", todoId);
+
+        long managerUserId = 2L;
+
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+
+        // when
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+                managerService.deleteManager(user.getId(), todoId, managerUserId)
+        );
+
+        // then
+        assertEquals("해당 일정을 만든 유저가 유효하지 않습니다.", exception.getMessage());
+    }
+
+    @Test
+    void deleteManager시_todo의User와요청User와_다른_경우() {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        User user = User.fromAuthUser(authUser);  // 실제 todo를 만든 유저
+
+        AuthUser authUser2 = new AuthUser(2L, "b@a.com", UserRole.USER);
+        User user2 = User.fromAuthUser(authUser2);  // 삭제 요청한 유저 (다른 유저)
+
+        long todoId = 1L;
+        Todo todo = new Todo("Title", "Contents", "Sunny", user); // user가 owner
+        ReflectionTestUtils.setField(todo, "id", todoId);
+
+        long managerUserId = 3L; // 임시 ID
+
+        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2)); // 다른 유저 리턴
+        given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+
+        // when
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+                managerService.deleteManager(user2.getId(), todoId, managerUserId) // user2로 요청
+        );
+
+        // then
+        assertEquals("해당 일정을 만든 유저가 유효하지 않습니다.", exception.getMessage());
+    }
+
 }
